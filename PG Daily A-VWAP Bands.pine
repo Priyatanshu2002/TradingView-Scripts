@@ -1,0 +1,127 @@
+// This Pine Script™ source code is subject to the terms of the Mozilla Public License 2.0
+// https://mozilla.org/MPL/2.0/
+
+//@version=6
+indicator("PG Daily Anchored-VWAP Bands", overlay=true)
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  INPUTS
+// ──────────────────────────────────────────────────────────────────────────────
+
+// Band multipliers
+band1_mult = input.float(1.0,  "Band 1 Std Dev Multiplier", minval=0.1, step=0.1, group="Bands")
+band1_show = input.bool(true,  "Show Band 1",                                     group="Bands")
+
+band2_mult = input.float(2.0,  "Band 2 Std Dev Multiplier", minval=0.1, step=0.1, group="Bands")
+band2_show = input.bool(true,  "Show Band 2",                                     group="Bands")
+
+band3_mult = input.float(3.0,  "Band 3 Std Dev Multiplier", minval=0.1, step=0.1, group="Bands")
+band3_show = input.bool(true,  "Show Band 3",                                     group="Bands")
+
+// Session start time (IST)
+session_start_hour   = input.int(3,  "Session Start Hour (IST)",  minval=0, maxval=23, group="Session")
+session_start_minute = input.int(30, "Session Start Minute (IST)", minval=0, maxval=59, group="Session")
+
+// Timeframe — matches original NOM script options
+tf_option = input.string("Daily", "VWAP Reset Timeframe", options=["Daily", "Weekly", "2 Weeks", "Monthly"], group="Session")
+
+// Colors
+vwap_color   = input.color(#cfa600, "VWAP Color",   group="Colors")
+band1_color  = input.color(#b84bf2, "Band 1 Color", group="Colors")
+band2_color  = input.color(#4894c7, "Band 2 Color", group="Colors")
+band3_color  = input.color(#e74c3c, "Band 3 Color", group="Colors")
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  SESSION RESET DETECTION
+// ──────────────────────────────────────────────────────────────────────────────
+
+// Get IST time components using the Asia/Kolkata timezone directly
+ist_hour       = hour(time,    "Asia/Kolkata")
+ist_minute     = minute(time,  "Asia/Kolkata")
+ist_dow        = dayofweek(time, "Asia/Kolkata")
+ist_dom        = dayofmonth(time, "Asia/Kolkata")
+ist_month      = month(time,   "Asia/Kolkata")
+
+prev_ist_hour   = hour(nz(time[1], time),   "Asia/Kolkata")
+prev_ist_minute = minute(nz(time[1], time), "Asia/Kolkata")
+prev_ist_dow    = dayofweek(nz(time[1], time), "Asia/Kolkata")
+prev_ist_dom    = dayofmonth(nz(time[1], time), "Asia/Kolkata")
+prev_ist_month  = month(nz(time[1], time),  "Asia/Kolkata")
+
+// Total minutes since midnight (IST) for current and previous bar
+ist_total_min   = ist_hour * 60 + ist_minute
+prev_ist_total  = prev_ist_hour * 60 + prev_ist_minute
+start_total_min = session_start_hour * 60 + session_start_minute
+
+// ── Daily reset: IST time crosses the session start boundary ────────────────
+ist_day_changed = ist_dom != prev_ist_dom
+is_daily_reset  = (ist_total_min >= start_total_min and prev_ist_total < start_total_min) or
+                  (ist_day_changed and ist_total_min >= start_total_min and prev_ist_total >= start_total_min)
+
+// ── Timeframe gate (matches original NOM logic) ─────────────────────────────
+bool is_new_week = prev_ist_dow > ist_dow
+
+var int week_count = 0
+if is_new_week
+    week_count += 1
+
+bool timeframe_reset = switch tf_option
+    "Weekly"  => is_new_week
+    "2 Weeks" => is_new_week and (week_count % 2 == 0)
+    "Monthly" => ist_month != prev_ist_month
+    =>           true
+
+// Final reset flag
+is_new_session_final = (is_daily_reset and timeframe_reset) or barstate.isfirst
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  VWAP + BANDS — using TradingView's native ta.vwap() with custom anchor
+//  This uses the same formula as the original NOM script:
+//    VWAP     = Σ(TP × Vol) / Σ(Vol)
+//    stdDev   = sqrt( max( Σ(TP²×Vol)/Σ(Vol) − VWAP², 0 ) )
+//  but via TradingView's built-in engine for proper chart scaling.
+// ──────────────────────────────────────────────────────────────────────────────
+
+[vwap_val, upper1, lower1] = ta.vwap(hlc3, is_new_session_final, band1_mult)
+[_vwap2,   upper2, lower2] = ta.vwap(hlc3, is_new_session_final, band2_mult)
+[_vwap3,   upper3, lower3] = ta.vwap(hlc3, is_new_session_final, band3_mult)
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  PLOTS
+// ──────────────────────────────────────────────────────────────────────────────
+
+plot(vwap_val, "VWAP",                        color=vwap_color,  linewidth=2)
+
+plot(band1_show ? upper1 : na, "Upper Band 1", color=band1_color, linewidth=2)
+plot(band1_show ? lower1 : na, "Lower Band 1", color=band1_color, linewidth=2)
+
+plot(band2_show ? upper2 : na, "Upper Band 2", color=band2_color, linewidth=2)
+plot(band2_show ? lower2 : na, "Lower Band 2", color=band2_color, linewidth=2)
+
+plot(band3_show ? upper3 : na, "Upper Band 3", color=band3_color, linewidth=2)
+plot(band3_show ? lower3 : na, "Lower Band 3", color=band3_color, linewidth=2)
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  OPTIONAL: Fill between bands for visual clarity
+// ──────────────────────────────────────────────────────────────────────────────
+
+fill_enabled = input.bool(false, "Enable Band Fills", group="Colors")
+
+p_u1 = plot(band1_show and fill_enabled ? upper1 : na, display=display.none, editable=false)
+p_l1 = plot(band1_show and fill_enabled ? lower1 : na, display=display.none, editable=false)
+p_u2 = plot(band2_show and fill_enabled ? upper2 : na, display=display.none, editable=false)
+p_l2 = plot(band2_show and fill_enabled ? lower2 : na, display=display.none, editable=false)
+p_u3 = plot(band3_show and fill_enabled ? upper3 : na, display=display.none, editable=false)
+p_l3 = plot(band3_show and fill_enabled ? lower3 : na, display=display.none, editable=false)
+
+fill(p_u1, p_l1, color=color.new(band1_color, 90), title="Band 1 Fill")
+fill(p_u2, p_l2, color=color.new(band2_color, 93), title="Band 2 Fill")
+fill(p_u3, p_l3, color=color.new(band3_color, 95), title="Band 3 Fill")
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  SESSION START MARKER (optional visual aid)
+// ──────────────────────────────────────────────────────────────────────────────
+
+show_session_line = input.bool(false, "Show Session Start Line", group="Session")
+
+bgcolor(is_new_session_final and show_session_line ? color.new(color.white, 85) : na, title="Session Start")
