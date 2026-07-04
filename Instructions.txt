@@ -1,0 +1,31 @@
+Here is the complete, comprehensive guide for the [b]PG Daily Anchored-VWAP Bands[/b] indicator, combining all explanations, strategy integrations, and setup tips into a single point-wise format:
+
+[b]1. Understanding the Basics (For Beginners)[/b]
+[b][i]The Gravitational Center (VWAP)[/i][/b]: The central yellow line represents the Volume-Weighted Average Price. Think of it as the "fair-market price" for the day, where major institutional players (banks, mutual funds, and market makers) execute their bulk positions.
+[b][i]The Rubber Bands (Volatility Bands)[/i][/b]: The purple (Band 1), blue (Band 2), and red (Band 3) lines show how far the price has stretched from the fair value. Just like a rubber band, the further the price stretches away from the VWAP, the stronger the tendency for the market to snap back toward the center.
+[b][i]Session Anchor[/i][/b]: Because this indicator resets exactly at the designated start of the session, it gives you an undistorted view of volume accumulation starting from the day's opening bell.
+
+[b]2. Refining Your Entries (Buying Cheap & Selling Dear)[/b]
+[b][i]Stop Chasing the Market[/i][/b]: Instead of buying when the price is rapidly rising, train yourself to wait for the price to reach the discount zone at the lower Band 1 or Band 2.
+[b][i]The "Sweep and Reclaim" Trigger[/i][/b]: Look for the price to break below the lower Band 2, sweep the stop-losses of retail traders, and then quickly close back above the band. Enter your buy trade on the close of that reclaiming candle, placing a tight stop-loss just below the swing low of the sweep.
+[b][i]Shorting at the Premium[/i][/b]: For short trades, wait for the price to stretch up to the upper Band 1 or Band 2 (the premium zone) and enter when the price fails to hold above the band, targeting a drop back to the fair price.
+
+[b]3. Mastering Your Exits (Locking in Profits)[/b]
+[b][i]Target 1 (Reversion to Mean)[/i][/b]: If you enter a trade near the outer bands, the central yellow VWAP line should always be your first take-profit target. Since the price naturally reverts to this average, it is a highly reliable area to secure partial profits.
+[b][i]Target 2 (The Volatility Limits)[/i][/b]: The outer Band 2 and Band 3 represent the extreme boundaries of daily volatility. If you are in a long position and the price reaches the upper Band 2 or Band 3, it is time to close the trade because the market has a greater than 90% probability of reversing or stalling out.
+
+[b]4. Combining with SMC & ICT (Double Confirmation)[/b]
+[b][i]SMC Order Block (OB) Alignment[/i][/b]: Only take buy trades at a bullish Order Block if it directly overlaps with the lower Band 1 or Band 2. This alignment gives you double confirmation: you are buying at structural support and a statistical daily discount.
+[b][i]ICT Fair Value Gap (FVG) Sweeps[/i][/b]: Look for setups where the price sweeps liquidity below the lower Band 2 or 3 and immediately taps into a bullish Fair Value Gap. This indicates an institutional stop hunt (a "Judas Swing") and provides a highly precise entry point.
+[b][i]SMT Divergence Confirmation[/i][/b]: Watch two correlated assets (e.g., Nifty and Bank Nifty). If Nifty sweeps below its lower Band 2 while Bank Nifty fails to reach its own lower band, it reveals smart money accumulation, signaling a high-probability long entry on both assets.
+
+[b]5. Combining with Tom Vorwald's PBD Model (Auction Market Theory)[/b]
+[b][i]Identifying the Balanced State[/i][/b]: When the price is bouncing between the upper and lower Band 1, the market is in a "balanced" (ranging) state. Under the PBD framework, you trade the range: buy at the bottom Band 1, target the top Band 1, and avoid trading when the price is sitting directly on the VWAP.
+[b][i]Identifying the Imbalanced State (Breakouts)[/i][/b]: If the price breaks aggressively above Band 1 and Band 2, the market is "imbalanced" (trending). Instead of fighting the trend, wait for a PBD pullback where the price tests the outside of the broken band as support, then enter in the direction of the breakout, targeting the extreme Band 3.
+
+[b]6. Important Session Settings Tip (Configuring for NSE/BSE vs. GIFT Nifty)[/b]
+[b][i]Default Settings[/i][/b]: By default, the script resets at [b][i]3:30 AM IST[/i][/b] (`session_start_hour = 3`, `session_start_minute = 30`).
+[b][i]Indian Cash Markets (NSE/BSE)[/i][/b]: If you are trading the regular Indian stock market, change the inputs in your TradingView settings to anchor the VWAP exactly to the [b][i]9:15 AM IST[/i][/b] cash open:
+  Session Start Hour (IST): `9`
+  Session Start Minute (IST): `15`
+  Futures & Crypto Markets: Keep the default `3:30 AM IST` setting if you are trading 24-hour assets like international contracts, GIFT Nifty, or cryptocurrencies, as it resets before the major session volume begins to accumulate.
